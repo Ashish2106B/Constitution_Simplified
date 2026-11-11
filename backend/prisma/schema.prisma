@@ -11,3 +11,106 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+
+model Topic {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String
+  createdAt   DateTime @default(now())
+
+  articles    Article[]
+}
+
+model Article {
+  id                  Int      @id @default(autoincrement())
+  articleNumber       String
+  title               String
+  originalText        String   @db.Text
+  simplifiedText      String   @db.Text
+  example             String   @db.Text
+  createdAt           DateTime @default(now())
+
+  topicId             Int
+  topic               Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  questions Question[]
+  progress UserProgress[]
+
+  @@unique([articleNumber, topicId])
+}
+
+model Question {
+  id            Int      @id @default(autoincrement())
+  questionText  String   @db.Text
+  optionA       String
+  optionB       String
+  optionC       String
+  optionD       String
+  correctAnswer String
+  explanation   String   @db.Text
+  difficulty    String   @default("EASY")
+  createdAt     DateTime @default(now())
+
+  articleId     Int
+  article       Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  progress UserProgress[]
+  gameScores GameScore[]
+  streak Streak?
+}
+
+model UserProgress {
+  id          Int      @id @default(autoincrement())
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  userId      Int
+  articleId   Int
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+}
+
+
+model Game {
+  id          Int      @id @default(autoincrement())
+  title       String   @unique
+  description String   @db.Text
+  gameType    String
+  createdAt   DateTime @default(now())
+  scores GameScore[]
+}
+
+model GameScore {
+  id          Int      @id @default(autoincrement())
+  score       Int      @default(0)
+  totalScore  Int
+  playedAt    DateTime @default(now())
+
+  userId      Int
+  gameId      Int
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game        Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+}
+
+model Streak {
+  id            Int      @id @default(autoincrement())
+  currentStreak Int      @default(0)
+  longestStreak Int      @default(0)
+  lastActiveDate DateTime?
+  createdAt     DateTime @default(now())
+
+  userId        Int      @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
