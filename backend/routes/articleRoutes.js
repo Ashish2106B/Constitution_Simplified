@@ -1,11 +1,11 @@
 const express = require("express");
 
+const {
+  getArticleById,
+} = require("../controllers/articleController");
+
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  res.json({
-    message: "Article routes are working",
-  });
-});
+router.get("/:id", getArticleById);
 
 module.exports = router;
