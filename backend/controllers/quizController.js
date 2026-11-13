@@ -53,7 +53,7 @@ const getQuestionsByArticle = async (req, res) => {
 const submitQuizAnswers = async (req, res) => {
   try {
     const articleId = Number(req.params.articleId);
-    const { answers } = req.body;
+    const { answers } = req.body || {};
 
     if (!Number.isInteger(articleId) || articleId <= 0) {
       return res.status(400).json({
@@ -64,6 +64,25 @@ const submitQuizAnswers = async (req, res) => {
     if (!Array.isArray(answers) || answers.length === 0) {
       return res.status(400).json({
         message: "Answers must be a non-empty array",
+      });
+    }
+
+    const validOptions = ["A", "B", "C", "D"];
+    const invalidAnswer = answers.some((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) {
+        return true;
+      }
+
+      if (typeof item.answer !== "string" || item.answer.trim() === "") {
+        return true;
+      }
+
+      return !validOptions.includes(item.answer.trim().toUpperCase());
+    });
+
+    if (invalidAnswer) {
+      return res.status(400).json({
+        message: "Each answer must include a valid option identifier (A, B, C, or D)",
       });
     }
 
