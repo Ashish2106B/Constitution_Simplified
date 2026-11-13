@@ -37,24 +37,26 @@ function Topics() {
 
   return (
     <Layout>
-      <h1>Topics</h1>
-      {loading && <p>Loading topics...</p>}
-      {!loading && error && <p role="alert">{error}</p>}
-      {!loading && !error && topics.length === 0 && (
-        <p>No topics are available yet.</p>
-      )}
-      {!loading && !error && topics.length > 0 && (
-        <ul>
-          {topics.map((topic) => (
-            <li key={topic.id}>
-              <h2>
-                <Link to={`/topics/${topic.id}/articles`}>{topic.name}</Link>
-              </h2>
-              <p>{topic.description}</p>
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="page-container">
+        <h1 className="page-title">Topics</h1>
+        {loading && <p>Loading topics...</p>}
+        {!loading && error && <p role="alert">{error}</p>}
+        {!loading && !error && topics.length === 0 && (
+          <p>No topics are available yet.</p>
+        )}
+        {!loading && !error && topics.length > 0 && (
+          <ul>
+            {topics.map((topic) => (
+              <li className="card" key={topic.id}>
+                <h2>
+                  <Link to={`/topics/${topic.id}/articles`}>{topic.name}</Link>
+                </h2>
+                <p>{topic.description}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </Layout>
   );
 }
