@@ -1,4 +1,5 @@
 const express = require("express");
+const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -9,6 +10,6 @@ const {
 
 router.get("/article/:articleId", getQuestionsByArticle);
 
-router.post("/article/:articleId/submit", submitQuizAnswers);
+router.post("/article/:articleId/submit", authMiddleware, submitQuizAnswers);
 
 module.exports = router;

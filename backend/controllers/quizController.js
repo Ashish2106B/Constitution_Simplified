@@ -170,6 +170,27 @@ const submitQuizAnswers = async (req, res) => {
       (correctCount / totalQuestions) * 100
     );
 
+    if (percentage >= 60) {
+      const userId = req.user.userId;
+      const completedAt = new Date();
+
+      await prisma.userProgress.upsert({
+        where: {
+          userId_articleId: { userId, articleId },
+        },
+        update: {
+          completed: true,
+          completedAt,
+        },
+        create: {
+          userId,
+          articleId,
+          completed: true,
+          completedAt,
+        },
+      });
+    }
+
     return res.status(200).json({
       articleId,
       totalQuestions,
