@@ -6,7 +6,8 @@ import { get } from "../services/api";
 
 function TopicArticles() {
   const { topicId } = useParams();
-  const [topicData, setTopicData] = useState(null);
+  const [topicName, setTopicName] = useState("");
+  const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -16,8 +17,13 @@ function TopicArticles() {
     const fetchArticles = async () => {
       try {
         const response = await get(`/topics/${topicId}/articles`);
+        if (!Array.isArray(response?.articles)) {
+          throw new Error("The topic articles response is invalid");
+        }
+
         if (isMounted) {
-          setTopicData(response);
+          setTopicName(response.topic || "Topic Articles");
+          setArticles(response.articles);
         }
       } catch (requestError) {
         if (isMounted) {
@@ -38,19 +44,20 @@ function TopicArticles() {
 
   return (
     <Layout>
-      <h1>{topicData?.topic || "Topic Articles"}</h1>
+      <h1>{topicName || "Topic Articles"}</h1>
       {loading && <p>Loading articles...</p>}
       {!loading && error && <p role="alert">{error}</p>}
-      {!loading && !error && topicData?.articles?.length === 0 && (
+      {!loading && !error && articles.length === 0 && (
         <p>No articles are available for this topic yet.</p>
       )}
-      {!loading && !error && topicData?.articles?.length > 0 && (
+      {!loading && !error && articles.length > 0 && (
         <ul>
-          {topicData.articles.map((article) => (
+          {articles.map((article) => (
             <li key={article.id}>
               <Link to={`/articles/${article.id}`}>
                 {article.articleNumber}: {article.title}
               </Link>
+              {article.simplifiedText && <p>{article.simplifiedText}</p>}
             </li>
           ))}
         </ul>
