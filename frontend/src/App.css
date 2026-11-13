@@ -245,3 +245,31 @@
   background: #eaf0f6;
   text-decoration: none;
 }
+
+.learning-layout {
+  display: flex;
+  min-height: calc(100vh - 60px);
+}
+
+.learning-content {
+  flex: 1;
+  padding: 24px;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .learning-layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .learning-content {
+    padding: 16px;
+  }
+}

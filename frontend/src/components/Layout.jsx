@@ -6,10 +6,10 @@ function Layout({ children }) {
     <>
       <Navbar />
 
-      <div>
+      <div className="learning-layout">
         <Sidebar />
 
-        <main>{children}</main>
+        <main className="learning-content">{children}</main>
       </div>
     </>
   );
