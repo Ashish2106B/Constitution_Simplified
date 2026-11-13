@@ -112,6 +112,140 @@ const articles = [
   },
 ];
 
+const questionData = [
+  {
+    topicName: "Introduction to the Constitution",
+    articleNumber: "Article 1",
+    questionText: "How does Article 1 describe India?",
+    optionA: "As a Union of States",
+    optionB: "As a group of independent countries",
+    optionC: "As a single State without territories",
+    optionD: "As a Union made up only of Union territories",
+    correctAnswer: "A",
+    explanation:
+      "Article 1 describes India, also called Bharat, as a Union of States.",
+    difficulty: "EASY",
+  },
+  {
+    topicName: "Introduction to the Constitution",
+    articleNumber: "Article 1",
+    questionText: "Which set best matches the territory of India under Article 1?",
+    optionA: "Only the States listed in the First Schedule",
+    optionB: "Only the Union territories listed in the First Schedule",
+    optionC: "States, listed Union territories, and other territories that may be acquired",
+    optionD: "All territories of neighbouring countries",
+    correctAnswer: "C",
+    explanation:
+      "Article 1 includes the States, the Union territories in the First Schedule, and other territories that may be acquired.",
+    difficulty: "EASY",
+  },
+  {
+    topicName: "Introduction to the Constitution",
+    articleNumber: "Article 12",
+    questionText:
+      "For Part III, which bodies can be included in the meaning of “the State” under Article 12?",
+    optionA: "Only the Government of India",
+    optionB: "Union and State governments and legislatures, plus local or other authorities covered by the article",
+    optionC: "Every private person and business automatically",
+    optionD: "Only elected members of Parliament",
+    correctAnswer: "B",
+    explanation:
+      "Article 12 includes Union and State governments and legislatures, as well as local or other authorities within its definition.",
+    difficulty: "EASY",
+  },
+  {
+    topicName: "Introduction to the Constitution",
+    articleNumber: "Article 12",
+    questionText: "Why is Article 12 useful when studying Fundamental Rights?",
+    optionA: "It lists every citizen's duties",
+    optionB: "It explains how States are created",
+    optionC: "It sets the rules for choosing the President",
+    optionD: "It helps identify which public bodies are treated as the State in Part III",
+    correctAnswer: "D",
+    explanation:
+      "Article 12 defines “the State” for Part III, which helps show which bodies the Fundamental Rights provisions address.",
+    difficulty: "EASY",
+  },
+  {
+    topicName: "Fundamental Rights",
+    articleNumber: "Article 14",
+    questionText: "Who is protected by Article 14's guarantee of equality before law?",
+    optionA: "Every person",
+    optionB: "Only citizens who own property",
+    optionC: "Only government employees",
+    optionD: "Only people born in India",
+    correctAnswer: "A",
+    explanation:
+      "Article 14 says “any person,” so its equality guarantee is not limited to citizens.",
+    difficulty: "EASY",
+  },
+  {
+    topicName: "Fundamental Rights",
+    articleNumber: "Article 14",
+    questionText: "Which pair best describes the protections in Article 14?",
+    optionA: "Freedom of speech and peaceful assembly",
+    optionB: "The right to vote and the right to work",
+    optionC: "Equality before law and equal protection of the laws",
+    optionD: "Freedom to travel and choose a profession",
+    correctAnswer: "C",
+    explanation:
+      "Article 14 protects both equality before the law and equal protection of the laws within India.",
+    difficulty: "EASY",
+  },
+  {
+    topicName: "Fundamental Rights",
+    articleNumber: "Article 19",
+    questionText: "Which activity is expressly listed as a freedom in Article 19?",
+    optionA: "Assembling peacefully and without arms",
+    optionB: "Owning land in every State",
+    optionC: "Receiving a government job",
+    optionD: "Voting in every election worldwide",
+    correctAnswer: "A",
+    explanation:
+      "Article 19 lists the freedom to assemble peaceably and without arms for citizens.",
+    difficulty: "EASY",
+  },
+  {
+    topicName: "Fundamental Rights",
+    articleNumber: "Article 19",
+    questionText: "Which statement best describes the freedoms in Article 19?",
+    optionA: "They apply only to government officials and have no limits",
+    optionB: "They apply to citizens and may be subject to reasonable restrictions specified in the article",
+    optionC: "They apply only during elections",
+    optionD: "They are the same as the Directive Principles in Part IV",
+    correctAnswer: "B",
+    explanation:
+      "Article 19 grants specified freedoms to citizens and sets out grounds for reasonable restrictions.",
+    difficulty: "EASY",
+  },
+  {
+    topicName: "Directive Principles of State Policy",
+    articleNumber: "Article 39",
+    questionText: "Which goal is included among the policy principles in Article 39?",
+    optionA: "Equal pay for equal work for men and women",
+    optionB: "Abolishing all State governments",
+    optionC: "Making every Directive Principle directly enforceable in court",
+    optionD: "Limiting education to adults",
+    correctAnswer: "A",
+    explanation:
+      "Article 39 directs State policy toward equal pay for equal work for both men and women.",
+    difficulty: "EASY",
+  },
+  {
+    topicName: "Directive Principles of State Policy",
+    articleNumber: "Article 39",
+    questionText: "How should Article 39 guide the State?",
+    optionA: "As a rule that replaces all Fundamental Rights",
+    optionB: "As a personal obligation for every citizen to enforce in court",
+    optionC: "As a policy guide toward welfare goals, not directly enforceable by courts",
+    optionD: "As a list of powers reserved only for local authorities",
+    correctAnswer: "C",
+    explanation:
+      "Article 39 is part of the Directive Principles. Article 37 says these principles guide governance but are not enforceable by courts.",
+    difficulty: "EASY",
+  },
+];
+
 async function main() {
   try {
     const topicIds = new Map();
@@ -124,19 +258,34 @@ async function main() {
       topicIds.set(topic.name, savedTopic.id);
     }
 
+    const articleIds = new Map();
     for (const article of articles) {
       const { topicName, ...content } = article;
       const topicId = topicIds.get(topicName);
       const data = { ...content, topicId };
-      await prisma.article.upsert({
+      const savedArticle = await prisma.article.upsert({
         where: {
           articleNumber_topicId: { articleNumber: article.articleNumber, topicId },
         },
         update: content,
         create: data,
       });
+      articleIds.set(`${topicName}:${article.articleNumber}`, savedArticle.id);
     }
-    console.log("Topics and articles seeded successfully");
+
+    const questions = questionData.map(
+      ({ topicName, articleNumber, ...question }) => {
+        const articleId = articleIds.get(`${topicName}:${articleNumber}`);
+        if (!articleId) {
+          throw new Error(`Article not found for ${articleNumber}`);
+        }
+        return { ...question, articleId };
+      }
+    );
+
+    console.log(
+      `Topics and articles seeded successfully; prepared ${questions.length} questions`
+    );
   } catch (error) {
     console.error("Failed to seed topics and articles:", error);
     process.exitCode = 1;
