@@ -1,16 +1,62 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 function Sidebar() {
   return (
     <aside className="sidebar">
-      <h3>Learning Menu</h3>
+      <div>
+        <div className="sidebar-title">Learning Menu</div>
+        <ul>
+          <li>
+            <NavLink
+              className={({ isActive }) =>
+                `sidebar-link ${isActive ? "active" : ""}`
+              }
+              to="/dashboard"
+            >
+              <span className="sidebar-icon">📊</span>
+              <span>Dashboard</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              className={({ isActive }) =>
+                `sidebar-link ${isActive ? "active" : ""}`
+              }
+              to="/topics"
+            >
+              <span className="sidebar-icon">📖</span>
+              <span>Constitution Topics</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              className={({ isActive }) =>
+                `sidebar-link ${isActive ? "active" : ""}`
+              }
+              to="/progress"
+            >
+              <span className="sidebar-icon">🎯</span>
+              <span>My Progress</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              className={({ isActive }) =>
+                `sidebar-link ${isActive ? "active" : ""}`
+              }
+              to="/games"
+            >
+              <span className="sidebar-icon">🎮</span>
+              <span>Learning Games</span>
+            </NavLink>
+          </li>
+        </ul>
+      </div>
 
-      <ul>
-        <li><Link className="sidebar-link" to="/dashboard">Dashboard</Link></li>
-        <li><Link className="sidebar-link" to="/topics">Constitution Topics</Link></li>
-        <li><Link className="sidebar-link" to="/progress">My Progress</Link></li>
-        <li><Link className="sidebar-link" to="/games">Learning Games</Link></li>
-      </ul>
+      <div className="sidebar-footer-card">
+        <strong>Daily Constitution Tip</strong>
+        <span>Understanding your fundamental rights strengthens our democracy.</span>
+      </div>
     </aside>
   );
 }
