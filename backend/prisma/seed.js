@@ -283,11 +283,30 @@ async function main() {
       }
     );
 
-    console.log(
-      `Topics and articles seeded successfully; prepared ${questions.length} questions`
-    );
+    for (const question of questions) {
+      await prisma.question.upsert({
+        where: {
+          articleId_questionText: {
+            articleId: question.articleId,
+            questionText: question.questionText,
+          },
+        },
+        update: {
+          optionA: question.optionA,
+          optionB: question.optionB,
+          optionC: question.optionC,
+          optionD: question.optionD,
+          correctAnswer: question.correctAnswer,
+          explanation: question.explanation,
+          difficulty: question.difficulty,
+        },
+        create: question,
+      });
+    }
+
+    console.log("Topics, articles, and questions seeded successfully");
   } catch (error) {
-    console.error("Failed to seed topics and articles:", error);
+    console.error("Failed to seed topics, articles, and questions:", error);
     process.exitCode = 1;
   } finally {
     await prisma.$disconnect();
