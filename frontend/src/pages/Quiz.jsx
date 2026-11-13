@@ -8,6 +8,7 @@ function Quiz() {
   const { articleId } = useParams();
   const [articleTitle, setArticleTitle] = useState("");
   const [questions, setQuestions] = useState([]);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -15,6 +16,7 @@ function Quiz() {
     let isMounted = true;
     setArticleTitle("");
     setQuestions([]);
+    setSelectedAnswers({});
     setLoading(true);
     setError("");
 
@@ -60,10 +62,36 @@ function Quiz() {
             <li key={question.id}>
               <h2>{question.questionText}</h2>
               <ul>
-                <li>A. {question.optionA}</li>
-                <li>B. {question.optionB}</li>
-                <li>C. {question.optionC}</li>
-                <li>D. {question.optionD}</li>
+                {[
+                  { value: "A", text: question.optionA },
+                  { value: "B", text: question.optionB },
+                  { value: "C", text: question.optionC },
+                  { value: "D", text: question.optionD },
+                ].map((option) => {
+                  const isSelected =
+                    selectedAnswers[question.id] === option.value;
+
+                  return (
+                    <li key={option.value}>
+                      <label>
+                        <input
+                          type="radio"
+                          name={`question-${question.id}`}
+                          value={option.value}
+                          checked={isSelected}
+                          onChange={() =>
+                            setSelectedAnswers((currentAnswers) => ({
+                              ...currentAnswers,
+                              [question.id]: option.value,
+                            }))
+                          }
+                        />
+                        {option.value}. {option.text}
+                        {isSelected && <strong> (Selected)</strong>}
+                      </label>
+                    </li>
+                  );
+                })}
               </ul>
             </li>
           ))}
