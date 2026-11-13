@@ -1,5 +1,12 @@
+import Layout from "../components/Layout";
+
 function Quiz() {
-  return <main><h1>Quiz</h1><p>Quiz questions will appear here.</p></main>;
+  return (
+    <Layout>
+      <h1>Quiz</h1>
+      <p>Quiz questions will appear here.</p>
+    </Layout>
+  );
 }
 
 export default Quiz;

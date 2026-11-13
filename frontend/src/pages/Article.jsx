@@ -1,5 +1,12 @@
+import Layout from "../components/Layout";
+
 function Article() {
-  return <main><h1>Article</h1><p>Article details will appear here.</p></main>;
+  return (
+    <Layout>
+      <h1>Article</h1>
+      <p>Article details will appear here.</p>
+    </Layout>
+  );
 }
 
 export default Article;
