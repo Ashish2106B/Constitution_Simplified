@@ -7,6 +7,7 @@ const quizRoutes = require("./routes/quizRoutes");
 const progressRoutes = require("./routes/progressRoutes");
 const gameRoutes = require("./routes/gameRoutes");
 const streakRoutes = require("./routes/streakRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use("/api/quiz", quizRoutes);
 app.use("/api/progress", progressRoutes);
 app.use("/api/games", gameRoutes);
 app.use("/api/streak", streakRoutes);
+app.use("/api/ai", aiRoutes);
 
 const PORT = process.env.PORT || 5050;
 
