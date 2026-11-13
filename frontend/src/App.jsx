@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Topics from "./pages/Topics";
+import TopicArticles from "./pages/TopicArticles";
 import Article from "./pages/Article";
 import AIAssistant from "./pages/AIAssistant";
 import Quiz from "./pages/Quiz";
@@ -22,6 +23,7 @@ function App() {
 
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/topics" element={<Topics />} />
+        <Route path="/topics/:topicId/articles" element={<TopicArticles />} />
         <Route path="/articles/:articleId" element={<Article />} />
         <Route path="/articles/:articleId/ai" element={<AIAssistant />} />
         <Route path="/articles/:articleId/quiz" element={<Quiz />} />

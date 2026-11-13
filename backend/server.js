@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const articleRoutes = require("./routes/articleRoutes");
 const authRoutes = require("./routes/authRoutes");
 const topicRoutes = require("./routes/topicRoutes");
@@ -11,7 +12,16 @@ const aiRoutes = require("./routes/aiRoutes");
 
 const app = express();
 
+const allowedOrigins = (
+  process.env.FRONTEND_URL ||
+  "http://localhost:5173,http://127.0.0.1:5173"
+)
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(express.json());
+app.use(cors({ origin: allowedOrigins }));
 
 app.get("/", (req, res) => {
   res.send("Nagrik Aur Samvidhan Backend is Running");
