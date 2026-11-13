@@ -52,6 +52,8 @@ model Question {
 
   articleId     Int
   article       Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, questionText])
 }
 
 model User {
