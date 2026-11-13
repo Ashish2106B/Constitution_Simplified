@@ -224,3 +224,24 @@
     justify-content: center;
   }
 }
+
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  padding: 20px;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+}
+
+.sidebar-link {
+  display: block;
+  padding: 12px;
+  margin-bottom: 8px;
+  color: #243247;
+  border-radius: 6px;
+}
+
+.sidebar-link:hover {
+  background: #eaf0f6;
+  text-decoration: none;
+}
