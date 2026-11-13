@@ -75,7 +75,7 @@ function Quiz() {
       const result = await post(`/quiz/article/${articleId}/submit`, {
         answers,
       });
-      navigate("/quiz/result", { state: { result } });
+      navigate("/quiz/result", { state: { result, articleTitle } });
     } catch (requestError) {
       setSubmissionError(
         requestError.message || "Failed to submit quiz answers"
