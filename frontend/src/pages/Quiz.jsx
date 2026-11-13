@@ -1,16 +1,20 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import Layout from "../components/Layout";
-import { get } from "../services/api";
+import { get, post } from "../services/api";
 
 function Quiz() {
   const { articleId } = useParams();
+  const navigate = useNavigate();
   const [articleTitle, setArticleTitle] = useState("");
   const [questions, setQuestions] = useState([]);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [submissionError, setSubmissionError] = useState("");
+  const submissionLock = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -19,6 +23,7 @@ function Quiz() {
     setSelectedAnswers({});
     setLoading(true);
     setError("");
+    setSubmissionError("");
 
     const fetchQuestions = async () => {
       try {
@@ -47,6 +52,39 @@ function Quiz() {
       isMounted = false;
     };
   }, [articleId]);
+
+  const allQuestionsAnswered =
+    questions.length > 0 &&
+    questions.every((question) => selectedAnswers[question.id]);
+
+  const submitQuiz = async () => {
+    if (!allQuestionsAnswered || submissionLock.current) {
+      return;
+    }
+
+    submissionLock.current = true;
+    setIsSubmitting(true);
+    setSubmissionError("");
+
+    const answers = questions.map((question) => ({
+      questionId: question.id,
+      answer: selectedAnswers[question.id],
+    }));
+
+    try {
+      const result = await post(`/quiz/article/${articleId}/submit`, {
+        answers,
+      });
+      navigate("/quiz/result", { state: { result } });
+    } catch (requestError) {
+      setSubmissionError(
+        requestError.message || "Failed to submit quiz answers"
+      );
+    } finally {
+      submissionLock.current = false;
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <Layout>
@@ -79,6 +117,7 @@ function Quiz() {
                           name={`question-${question.id}`}
                           value={option.value}
                           checked={isSelected}
+                          disabled={isSubmitting}
                           onChange={() =>
                             setSelectedAnswers((currentAnswers) => ({
                               ...currentAnswers,
@@ -96,6 +135,18 @@ function Quiz() {
             </li>
           ))}
         </ol>
+      )}
+      {!loading && !error && questions.length > 0 && (
+        <>
+          <button
+            type="button"
+            onClick={submitQuiz}
+            disabled={!allQuestionsAnswered || isSubmitting}
+          >
+            {isSubmitting ? "Submitting..." : "Submit Quiz"}
+          </button>
+          {submissionError && <p role="alert">{submissionError}</p>}
+        </>
       )}
     </Layout>
   );
