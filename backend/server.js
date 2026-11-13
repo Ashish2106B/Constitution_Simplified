@@ -4,6 +4,7 @@ const articleRoutes = require("./routes/articleRoutes");
 const authRoutes = require("./routes/authRoutes");
 const topicRoutes = require("./routes/topicRoutes");
 const quizRoutes = require("./routes/quizRoutes");
+const progressRoutes = require("./routes/progressRoutes");
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use("/api/articles", articleRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/topics", topicRoutes);
 app.use("/api/quiz", quizRoutes);
+app.use("/api/progress", progressRoutes);
 
 const PORT = process.env.PORT || 5050;
 
