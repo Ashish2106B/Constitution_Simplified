@@ -50,6 +50,123 @@ const getQuestionsByArticle = async (req, res) => {
   }
 };
 
+const submitQuizAnswers = async (req, res) => {
+  try {
+    const articleId = Number(req.params.articleId);
+    const { answers } = req.body;
+
+    if (!Number.isInteger(articleId) || articleId <= 0) {
+      return res.status(400).json({
+        message: "Invalid article ID",
+      });
+    }
+
+    if (!Array.isArray(answers) || answers.length === 0) {
+      return res.status(400).json({
+        message: "Answers must be a non-empty array",
+      });
+    }
+
+    const article = await prisma.article.findUnique({
+      where: {
+        id: articleId,
+      },
+      select: {
+        id: true,
+        questions: {
+          select: {
+            id: true,
+            correctAnswer: true,
+            explanation: true,
+          },
+        },
+      },
+    });
+
+    if (!article) {
+      return res.status(404).json({
+        message: "Article not found",
+      });
+    }
+
+    const questionIds = answers.map((item) => item.questionId);
+
+    if (
+      questionIds.some(
+        (id) => !Number.isInteger(id) || id <= 0
+      ) ||
+      new Set(questionIds).size !== questionIds.length
+    ) {
+      return res.status(400).json({
+        message: "Invalid or duplicate question IDs",
+      });
+    }
+
+    const articleQuestionIds = new Set(
+      article.questions.map((question) => question.id)
+    );
+
+    const invalidQuestion = answers.some(
+      (item) => !articleQuestionIds.has(item.questionId)
+    );
+
+    if (invalidQuestion) {
+      return res.status(400).json({
+        message: "Some questions do not belong to this article",
+      });
+    }
+
+    const questionMap = new Map(
+      article.questions.map((question) => [
+        question.id,
+        question,
+      ])
+    );
+
+    let correctCount = 0;
+
+    const results = answers.map((item) => {
+      const question = questionMap.get(item.questionId);
+
+      const isCorrect =
+        String(item.answer).trim().toUpperCase() ===
+        question.correctAnswer.trim().toUpperCase();
+
+      if (isCorrect) {
+        correctCount++;
+      }
+
+      return {
+        questionId: question.id,
+        selectedAnswer: item.answer,
+        correctAnswer: question.correctAnswer,
+        isCorrect,
+        explanation: question.explanation,
+      };
+    });
+
+    const totalQuestions = answers.length;
+
+    const percentage = Math.round(
+      (correctCount / totalQuestions) * 100
+    );
+
+    return res.status(200).json({
+      articleId,
+      totalQuestions,
+      correctCount,
+      incorrectCount: totalQuestions - correctCount,
+      percentage,
+      results,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to submit quiz answers",
+    });
+  }
+};
+
 module.exports = {
   getQuestionsByArticle,
+  submitQuizAnswers,
 };
