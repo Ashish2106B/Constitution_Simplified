@@ -51,48 +51,129 @@ function Article() {
 
   return (
     <Layout>
-      {loading && <p>Loading article...</p>}
-      {!loading && notFound && (
-        <>
-          <h1>Article not found</h1>
-          <p>The requested article could not be found.</p>
-          <Link to="/topics">Back to topics</Link>
-        </>
-      )}
-      {!loading && !notFound && error && <p role="alert">{error}</p>}
-      {!loading && !notFound && !error && article && (
-        <>
-          <header>
-            <p>{article.articleNumber}</p>
-            <h1>{article.title}</h1>
-          </header>
+      <div className="page-container article-detail-container">
+        {loading && (
+          <div className="loading-container">
+            <div className="loading-spinner" />
+            <p>Loading article...</p>
+          </div>
+        )}
 
-          <section>
-            <h2>Original constitutional text</h2>
-            <p style={{ whiteSpace: "pre-wrap" }}>{article.originalText}</p>
-          </section>
-
-          <section>
-            <h2>Simplified explanation</h2>
-            <p>{article.simplifiedText}</p>
-          </section>
-
-          {article.example && (
-            <section>
-              <h2>Real-life example</h2>
-              <p>{article.example}</p>
-            </section>
-          )}
-
-          <nav aria-label="Article actions">
-            <Link to={`/topics/${article.topicId}/articles`}>
-              Back to {article.topic?.name || "topic articles"}
+        {!loading && notFound && (
+          <div className="empty-state">
+            <div className="empty-state-icon">🔍</div>
+            <h1 className="page-title">Article not found</h1>
+            <p>The requested article could not be found.</p>
+            <Link to="/topics" className="btn btn-outline-blue btn-sm" style={{ marginTop: "14px" }}>
+              Back to topics
             </Link>
-            <Link to={`/articles/${article.id}/quiz`}>Start Article Quiz</Link>
-            <Link to={`/articles/${article.id}/ai`}>Ask AI</Link>
-          </nav>
-        </>
-      )}
+          </div>
+        )}
+
+        {!loading && !notFound && error && (
+          <div className="alert alert-error" role="alert">
+            <span>⚠️</span>
+            <div>
+              <strong>Error:</strong> {error}
+            </div>
+          </div>
+        )}
+
+        {!loading && !notFound && !error && article && (
+          <>
+            <nav aria-label="Breadcrumb" className="breadcrumb">
+              <Link to="/topics">Topics</Link>
+              <span className="breadcrumb-separator">›</span>
+              {article.topicId && (
+                <>
+                  <Link to={`/topics/${article.topicId}/articles`}>
+                    {article.topic?.name || "Topic"}
+                  </Link>
+                  <span className="breadcrumb-separator">›</span>
+                </>
+              )}
+              <span>{article.articleNumber}</span>
+            </nav>
+
+            <header className="article-header-banner">
+              <div className="article-header-meta">
+                <span className="article-number-badge">{article.articleNumber}</span>
+                {article.topic?.name && (
+                  <span className="badge badge-blue">{article.topic.name}</span>
+                )}
+              </div>
+              <h1 className="page-title" style={{ marginBottom: "12px" }}>
+                {article.title}
+              </h1>
+              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "16px" }}>
+                <Link
+                  to={`/articles/${article.id}/quiz`}
+                  className="btn btn-secondary btn-sm"
+                >
+                  Start Article Quiz ✍️
+                </Link>
+                <Link
+                  to={`/articles/${article.id}/ai`}
+                  className="btn btn-outline-blue btn-sm"
+                >
+                  Ask AI Assistant 🤖
+                </Link>
+              </div>
+            </header>
+
+            <section className="article-section article-original-box">
+              <h2 className="article-section-title">
+                <span>📜</span>
+                <span>Original constitutional text</span>
+              </h2>
+              <p className="article-original-text" style={{ whiteSpace: "pre-wrap" }}>
+                {article.originalText}
+              </p>
+            </section>
+
+            <section className="article-section article-simplified-box">
+              <h2 className="article-section-title">
+                <span>💡</span>
+                <span>Simplified explanation</span>
+              </h2>
+              <p className="article-simplified-text">{article.simplifiedText}</p>
+            </section>
+
+            {article.example && (
+              <section className="article-section article-example-box">
+                <h2 className="article-section-title">
+                  <span>🌱</span>
+                  <span>Real-life example</span>
+                </h2>
+                <p className="article-example-text">{article.example}</p>
+              </section>
+            )}
+
+            <nav aria-label="Article actions" className="article-nav-actions">
+              <Link
+                to={`/topics/${article.topicId}/articles`}
+                className="btn btn-outline btn-sm"
+              >
+                ← Back to {article.topic?.name || "topic articles"}
+              </Link>
+              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                <Link
+                  to={`/articles/${article.id}/quiz`}
+                  className="btn btn-secondary btn-sm"
+                >
+                  Start Article Quiz ✍️
+                </Link>
+                <Link
+                  to={`/articles/${article.id}/ai`}
+                  className="btn btn-primary btn-sm"
+                >
+                  Ask AI 🤖
+                </Link>
+              </div>
+            </nav>
+          </>
+        )}
+      </div>
     </Layout>
   );
 }
