@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-
 import Layout from "../components/Layout";
 import { get } from "../services/api";
+import { Icon } from "../components/Icons";
 
 function TopicArticles() {
   const { topicId } = useParams();
   const [topicName, setTopicName] = useState("");
   const [articles, setArticles] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -42,48 +43,91 @@ function TopicArticles() {
     };
   }, [topicId]);
 
+  const filteredArticles = articles.filter((art) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      art.articleNumber?.toLowerCase().includes(term) ||
+      art.title?.toLowerCase().includes(term) ||
+      art.simplifiedText?.toLowerCase().includes(term)
+    );
+  });
+
   return (
     <Layout>
       <div className="page-container">
+        {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" className="breadcrumb">
-          <Link to="/topics">Constitution Topics</Link>
+          <Link to="/" className="breadcrumb-link">
+            <Icon name="pillar" size={14} />
+            <span>Home</span>
+          </Link>
           <span className="breadcrumb-separator">›</span>
-          <span>{topicName || "Topic Articles"}</span>
+          <Link to="/topics" className="breadcrumb-link">
+            <span>Topics</span>
+          </Link>
+          <span className="breadcrumb-separator">›</span>
+          <span className="breadcrumb-current">{topicName || "Topic Articles"}</span>
         </nav>
 
+        {/* Header */}
         <header className="page-header">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: "14px",
-            }}
-          >
+          <div className="page-header-row">
             <div>
+              <span className="section-kicker">Articles in this Chapter</span>
               <h1 className="page-title">{topicName || "Topic Articles"}</h1>
               <p className="page-subtitle">
                 Explore individual constitutional articles under this topic with simplified breakdowns, examples, and knowledge checks.
               </p>
             </div>
-            <Link to="/topics" className="btn btn-outline btn-sm">
-              ← Back to topics
-            </Link>
+            <div className="header-action-group">
+              <Link to="/topics" className="btn btn-outline btn-sm">
+                <Icon name="arrow-left" size={14} />
+                <span>Back to topics</span>
+              </Link>
+            </div>
           </div>
+
+          {articles.length > 0 && (
+            <div className="article-filter-bar">
+              <div className="search-input-box" style={{ maxWidth: "340px" }}>
+                <Icon name="search" size={16} className="search-icon" />
+                <input
+                  type="search"
+                  className="search-input"
+                  placeholder="Filter articles by number or keyword..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  aria-label="Filter articles"
+                />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    className="search-clear-btn"
+                    onClick={() => setSearchTerm("")}
+                    aria-label="Clear filter"
+                  >
+                    <Icon name="close" size={13} />
+                  </button>
+                )}
+              </div>
+              <span className="filter-count-badge">
+                Showing {filteredArticles.length} of {articles.length} articles
+              </span>
+            </div>
+          )}
         </header>
 
         {loading && (
           <div className="loading-container">
             <div className="loading-spinner" />
-            <p>Loading articles...</p>
+            <p className="loading-text">Loading constitutional articles...</p>
           </div>
         )}
 
         {!loading && error && (
           <div className="alert alert-error" role="alert">
-            <span>⚠️</span>
-            <div>
+            <span className="alert-icon">⚠️</span>
+            <div className="alert-content">
               <strong>Error:</strong> {error}
             </div>
           </div>
@@ -91,24 +135,46 @@ function TopicArticles() {
 
         {!loading && !error && articles.length === 0 && (
           <div className="empty-state">
-            <div className="empty-state-icon">📄</div>
+            <div className="empty-state-icon">
+              <Icon name="book" size={40} />
+            </div>
             <h3 className="empty-state-title">No Articles Found</h3>
-            <p>No articles are available for this topic yet.</p>
+            <p className="empty-state-text">No articles are available for this topic yet.</p>
             <Link to="/topics" className="btn btn-outline-blue btn-sm" style={{ marginTop: "14px" }}>
               Back to topics
             </Link>
           </div>
         )}
 
-        {!loading && !error && articles.length > 0 && (
+        {!loading && !error && articles.length > 0 && filteredArticles.length === 0 && (
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <Icon name="search" size={40} />
+            </div>
+            <h3 className="empty-state-title">No Matching Articles</h3>
+            <p className="empty-state-text">No articles matched "{searchTerm}".</p>
+            <button
+              type="button"
+              className="btn btn-outline-blue btn-sm"
+              onClick={() => setSearchTerm("")}
+              style={{ marginTop: "12px" }}
+            >
+              Clear Filter
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && filteredArticles.length > 0 && (
           <ul className="article-list">
-            {articles.map((article) => (
+            {filteredArticles.map((article) => (
               <li key={article.id} className="article-card card">
                 <div className="article-card-header">
-                  <span className="article-number-badge">
-                    {article.articleNumber}
-                  </span>
-                  <span className="badge badge-teal">Official Provision</span>
+                  <div className="article-badge-group">
+                    <span className="article-number-badge">
+                      {article.articleNumber}
+                    </span>
+                    <span className="badge badge-teal">Official Provision</span>
+                  </div>
                 </div>
 
                 <h2 className="article-card-title">
@@ -124,21 +190,24 @@ function TopicArticles() {
                 <div className="article-card-actions">
                   <Link
                     to={`/articles/${article.id}`}
-                    className="btn btn-primary btn-sm"
+                    className="btn btn-primary btn-sm btn-glow"
                   >
-                    Read Explanation
+                    <Icon name="book" size={15} />
+                    <span>Read Explanation</span>
                   </Link>
                   <Link
                     to={`/articles/${article.id}/quiz`}
-                    className="btn btn-outline-blue btn-sm"
+                    className="btn btn-secondary btn-sm"
                   >
-                    Take Quiz ✍️
+                    <Icon name="trophy" size={15} />
+                    <span>Take Quiz</span>
                   </Link>
                   <Link
                     to={`/articles/${article.id}/ai`}
-                    className="btn btn-outline btn-sm"
+                    className="btn btn-outline-blue btn-sm"
                   >
-                    Ask AI 🤖
+                    <Icon name="ai" size={15} />
+                    <span>Ask AI Tutor</span>
                   </Link>
                 </div>
               </li>

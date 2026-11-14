@@ -1,22 +1,51 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
 import Layout from "../components/Layout";
 import { get, post, patch } from "../services/api";
+import { Icon } from "../components/Icons";
+import { useToast } from "../components/useToast";
 
 function Progress() {
+  const { showToast } = useToast();
   const [token] = useState(() =>
     typeof window !== "undefined" ? localStorage.getItem("token") : null
   );
   const [progressData, setProgressData] = useState(null);
   const [streakData, setStreakData] = useState(null);
   const [filter, setFilter] = useState("all"); // "all", "completed", "incomplete"
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(Boolean(token));
   const [error, setError] = useState("");
   const [activityMessage, setActivityMessage] = useState("");
   const [recordingActivity, setRecordingActivity] = useState(false);
+  const [updatingArticleId, setUpdatingArticleId] = useState(null);
 
-  const fetchProgressAndStreak = async () => {
+  useEffect(() => {
+    if (!token) return;
+    let isMounted = true;
+
+    Promise.all([get("/progress"), get("/streak")])
+      .then(([progRes, streakRes]) => {
+        if (isMounted) {
+          setProgressData(progRes);
+          setStreakData(streakRes);
+          setError("");
+          setLoading(false);
+        }
+      })
+      .catch((reqError) => {
+        if (isMounted) {
+          setError(reqError.message || "Failed to load progress data");
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token]);
+
+  const refreshProgressAndStreak = async () => {
     try {
       const [progRes, streakRes] = await Promise.all([
         get("/progress"),
@@ -24,41 +53,41 @@ function Progress() {
       ]);
       setProgressData(progRes);
       setStreakData(streakRes);
-    } catch (reqError) {
-      setError(reqError.message || "Failed to load progress data");
-    } finally {
-      setLoading(false);
+    } catch {
+      // ignore
     }
   };
-
-  useEffect(() => {
-    if (token) {
-      fetchProgressAndStreak();
-    }
-  }, [token]);
 
   const handleRecordActivity = async () => {
     setRecordingActivity(true);
     setActivityMessage("");
     try {
       const response = await post("/streak/activity");
-      setActivityMessage(response.message || "Daily activity logged!");
+      const msg = response.message || "Daily activity logged!";
+      setActivityMessage(msg);
+      showToast(msg, "streak");
       if (response.streak) {
         setStreakData(response.streak);
       }
     } catch (err) {
-      setActivityMessage(err.message || "Failed to record activity");
+      const errMsg = err.message || "Failed to record activity";
+      setActivityMessage(errMsg);
+      showToast(errMsg, "error");
     } finally {
       setRecordingActivity(false);
     }
   };
 
   const handleMarkComplete = async (articleId) => {
+    setUpdatingArticleId(articleId);
     try {
       await patch(`/progress/article/${articleId}/complete`);
-      fetchProgressAndStreak();
+      showToast("Article marked as complete! ✓", "success");
+      await refreshProgressAndStreak();
     } catch (err) {
-      setError(err.message || "Failed to update article status");
+      showToast(err.message || "Failed to update article status", "error");
+    } finally {
+      setUpdatingArticleId(null);
     }
   };
 
@@ -69,47 +98,56 @@ function Progress() {
 
   const progressList = progressData?.progress || [];
   const filteredList = progressList.filter((item) => {
-    if (filter === "completed") return item.completed;
-    if (filter === "incomplete") return !item.completed;
-    return true;
+    const matchesFilter =
+      filter === "completed"
+        ? item.completed
+        : filter === "incomplete"
+        ? !item.completed
+        : true;
+
+    const term = searchQuery.toLowerCase();
+    const matchesSearch =
+      !term ||
+      item.articleNumber?.toLowerCase().includes(term) ||
+      item.articleTitle?.toLowerCase().includes(term);
+
+    return matchesFilter && matchesSearch;
   });
 
   return (
     <Layout>
       <div className="page-container">
+        {/* Header */}
         <header className="page-header">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: "12px",
-            }}
-          >
+          <div className="page-header-row">
             <div>
+              <span className="section-kicker">Citizen Achievement & Streaks</span>
               <h1 className="page-title">Progress</h1>
               <p className="page-subtitle">
                 Your completed articles will appear here. Track your constitutional journey and maintain your daily learning streak.
               </p>
             </div>
-            <Link to="/topics" className="btn btn-outline btn-sm">
-              Explore Topics →
-            </Link>
+            <div className="header-action-group">
+              <Link to="/topics" className="btn btn-outline btn-sm">
+                <Icon name="topics" size={14} />
+                <span>Explore Topics</span>
+                <Icon name="arrow-right" size={12} />
+              </Link>
+            </div>
           </div>
         </header>
 
         {loading && (
           <div className="loading-container">
             <div className="loading-spinner" />
-            <p>Loading your progress...</p>
+            <p className="loading-text">Loading your constitutional progress...</p>
           </div>
         )}
 
         {!loading && error && (
           <div className="alert alert-error" role="alert">
-            <span>⚠️</span>
-            <div>
+            <span className="alert-icon">⚠️</span>
+            <div className="alert-content">
               <strong>Error:</strong> {error}
             </div>
           </div>
@@ -117,12 +155,14 @@ function Progress() {
 
         {!loading && !token && (
           <div className="empty-state">
-            <div className="empty-state-icon">🔒</div>
+            <div className="empty-state-icon">
+              <Icon name="user" size={40} />
+            </div>
             <h2 className="empty-state-title">Sign in to Track Progress</h2>
-            <p style={{ maxWidth: "540px", margin: "0 auto 18px auto" }}>
+            <p className="empty-state-text" style={{ maxWidth: "540px", margin: "0 auto 18px auto" }}>
               Progress tracking, streak counters, and article completion records require an account so your achievements are saved securely.
             </p>
-            <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+            <div className="empty-state-actions">
               <Link to="/login" className="btn btn-primary btn-sm">
                 Sign In
               </Link>
@@ -137,82 +177,69 @@ function Progress() {
           <>
             {/* Streak Highlight Banner */}
             <div className="streak-banner-card">
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                  <span style={{ fontSize: "1.4rem" }}>🔥</span>
-                  <span style={{ fontSize: "1.2rem", fontWeight: 700 }}>
-                    {streakData?.currentStreak || 0} Day Learning Streak!
-                  </span>
+              <div className="streak-banner-left">
+                <div className="streak-fire-badge">
+                  <Icon name="fire" size={28} />
                 </div>
-                <p style={{ margin: 0, fontSize: "0.9rem", opacity: 0.9 }}>
-                  Longest record: <strong>{streakData?.longestStreak || 0} days</strong>. Complete a quiz or review an article daily to keep your streak alive.
-                </p>
-                {activityMessage && (
-                  <p style={{ margin: "8px 0 0 0", fontSize: "0.85rem", color: "var(--light-teal)" }}>
-                    {activityMessage}
+                <div>
+                  <div className="streak-title">
+                    {streakData?.currentStreak || 0} Day Learning Streak!
+                  </div>
+                  <p className="streak-subtitle">
+                    Longest record: <strong>{streakData?.longestStreak || 0} days</strong>. Complete a quiz or review an article daily to keep your streak alive.
                   </p>
-                )}
+                  {activityMessage && (
+                    <p className="streak-activity-message">
+                      {activityMessage}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <button
                 type="button"
-                className="btn btn-sm"
-                style={{ background: "rgba(255,255,255,0.2)", color: "white", border: "1px solid rgba(255,255,255,0.4)" }}
+                className="btn btn-streak-checkin"
                 onClick={handleRecordActivity}
                 disabled={recordingActivity}
               >
-                {recordingActivity ? "Checking in..." : "⚡ Check In Today"}
+                <Icon name="streak" size={16} />
+                <span>{recordingActivity ? "Checking in..." : "⚡ Check In Today"}</span>
               </button>
             </div>
 
             {/* Progress Stats Grid */}
             <div className="progress-stats-grid">
-              <div className="card" style={{ marginBottom: 0 }}>
-                <div style={{ fontSize: "0.82rem", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase" }}>
-                  Completion Rate
-                </div>
-                <div style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--navy)", margin: "4px 0" }}>
-                  {percent}%
-                </div>
+              <div className="card stat-highlight-card">
+                <div className="stat-card-label">Completion Rate</div>
+                <div className="stat-card-value text-navy">{percent}%</div>
                 <div className="quiz-progress-track">
                   <div className="quiz-progress-fill" style={{ width: `${percent}%` }} />
                 </div>
+                <div className="stat-card-sub">Of total constitutional syllabus</div>
               </div>
 
-              <div className="card" style={{ marginBottom: 0 }}>
-                <div style={{ fontSize: "0.82rem", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase" }}>
-                  Completed Articles
-                </div>
-                <div style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--success)", margin: "4px 0" }}>
-                  {completed}
-                </div>
-                <div style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
-                  Out of {total} total syllabus articles
-                </div>
+              <div className="card stat-highlight-card">
+                <div className="stat-card-label">Completed Articles</div>
+                <div className="stat-card-value text-success">{completed}</div>
+                <div className="stat-card-sub">Out of {total} total articles</div>
               </div>
 
-              <div className="card" style={{ marginBottom: 0 }}>
-                <div style={{ fontSize: "0.82rem", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase" }}>
-                  Remaining Articles
-                </div>
-                <div style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--navy)", margin: "4px 0" }}>
-                  {remaining}
-                </div>
-                <div style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
-                  To achieve complete mastery
-                </div>
+              <div className="card stat-highlight-card">
+                <div className="stat-card-label">Remaining Articles</div>
+                <div className="stat-card-value text-blue">{remaining}</div>
+                <div className="stat-card-sub">To achieve complete mastery</div>
               </div>
             </div>
 
-            {/* Filter Tabs */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", marginTop: "24px" }}>
+            {/* Filter Tabs and Search Bar */}
+            <div className="progress-controls-bar">
               <div className="progress-filter-tabs">
                 <button
                   type="button"
                   className={`filter-tab-btn ${filter === "all" ? "active" : ""}`}
                   onClick={() => setFilter("all")}
                 >
-                  All Articles ({progressList.length})
+                  All ({progressList.length})
                 </button>
                 <button
                   type="button"
@@ -230,21 +257,42 @@ function Progress() {
                 </button>
               </div>
 
-              <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
-                Articles are automatically completed when you score ≥ 60% on their quiz.
-              </span>
+              <div className="search-input-box" style={{ maxWidth: "260px" }}>
+                <Icon name="search" size={15} className="search-icon" />
+                <input
+                  type="search"
+                  className="search-input"
+                  placeholder="Filter articles..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  aria-label="Filter articles in progress"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="search-clear-btn"
+                    onClick={() => setSearchQuery("")}
+                    aria-label="Clear search"
+                  >
+                    <Icon name="close" size={13} />
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Progress Table */}
+            {/* Progress Table / List View */}
             {filteredList.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-state-icon">📋</div>
+                <div className="empty-state-icon">
+                  <Icon name="target" size={36} />
+                </div>
                 <h3 className="empty-state-title">No Articles Found</h3>
-                <p>No articles match the "{filter}" filter.</p>
+                <p className="empty-state-text">No articles match the current filter criteria.</p>
               </div>
             ) : (
               <div className="progress-table-card">
-                <table className="progress-table">
+                {/* Desktop Table View */}
+                <table className="progress-table desktop-only-table">
                   <thead>
                     <tr>
                       <th>Article</th>
@@ -265,7 +313,7 @@ function Progress() {
                         <td>
                           <Link
                             to={`/articles/${item.articleId}`}
-                            style={{ fontWeight: 600, color: "var(--navy)" }}
+                            className="table-article-title-link"
                           >
                             {item.articleTitle}
                           </Link>
@@ -281,13 +329,13 @@ function Progress() {
                             </span>
                           )}
                         </td>
-                        <td style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+                        <td className="table-date-cell">
                           {item.completedAt
                             ? new Date(item.completedAt).toLocaleDateString()
                             : "—"}
                         </td>
                         <td style={{ textAlign: "right" }}>
-                          <div style={{ display: "inline-flex", gap: "8px" }}>
+                          <div className="table-actions-cell">
                             <Link
                               to={`/articles/${item.articleId}`}
                               className="btn btn-sm btn-outline"
@@ -305,9 +353,12 @@ function Progress() {
                                 type="button"
                                 className="btn btn-sm btn-primary"
                                 onClick={() => handleMarkComplete(item.articleId)}
+                                disabled={updatingArticleId === item.articleId}
                                 title="Mark completed manually"
                               >
-                                Mark Done
+                                {updatingArticleId === item.articleId
+                                  ? "..."
+                                  : "Mark Done"}
                               </button>
                             )}
                           </div>
@@ -316,6 +367,61 @@ function Progress() {
                     ))}
                   </tbody>
                 </table>
+
+                {/* Mobile Responsive Cards */}
+                <div className="progress-mobile-list mobile-only-block">
+                  {filteredList.map((item) => (
+                    <div key={item.articleId} className="progress-mobile-card">
+                      <div className="mobile-card-top">
+                        <span className="badge badge-navy">
+                          {item.articleNumber}
+                        </span>
+                        {item.completed ? (
+                          <span className="badge badge-success">✓ Completed</span>
+                        ) : (
+                          <span className="badge badge-blue">⏳ In Progress</span>
+                        )}
+                      </div>
+
+                      <h4 className="mobile-card-title">
+                        <Link to={`/articles/${item.articleId}`}>
+                          {item.articleTitle}
+                        </Link>
+                      </h4>
+
+                      <div className="mobile-card-date">
+                        {item.completedAt
+                          ? `Completed on ${new Date(item.completedAt).toLocaleDateString()}`
+                          : "Not yet completed"}
+                      </div>
+
+                      <div className="mobile-card-actions">
+                        <Link
+                          to={`/articles/${item.articleId}`}
+                          className="btn btn-sm btn-outline"
+                        >
+                          Read
+                        </Link>
+                        <Link
+                          to={`/articles/${item.articleId}/quiz`}
+                          className="btn btn-sm btn-outline-blue"
+                        >
+                          Take Quiz
+                        </Link>
+                        {!item.completed && (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-primary"
+                            onClick={() => handleMarkComplete(item.articleId)}
+                            disabled={updatingArticleId === item.articleId}
+                          >
+                            {updatingArticleId === item.articleId ? "..." : "Mark Done"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </>
