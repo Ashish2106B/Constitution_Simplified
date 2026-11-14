@@ -1,4 +1,6 @@
-export const API_BASE_URL = "http://localhost:5050/api";
+export const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? "http://localhost:5050/api" : "/api");
 
 export async function apiRequest(path, { method = "GET", body, headers = {} } = {}) {
   const requestHeaders = new Headers(headers);

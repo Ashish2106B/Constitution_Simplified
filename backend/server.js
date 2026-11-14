@@ -38,7 +38,10 @@ app.use("/api/ai", aiRoutes);
 
 const PORT = process.env.PORT || 5050;
 
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+module.exports = app;
