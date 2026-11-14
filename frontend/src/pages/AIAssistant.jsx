@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-
 import Layout from "../components/Layout";
 import { get, post } from "../services/api";
+import { Icon } from "../components/Icons";
+import { useToast } from "../components/useToast";
 
 function AIAssistant() {
   const { articleId } = useParams();
+  const { showToast } = useToast();
   const [article, setArticle] = useState(null);
 
   const [question, setQuestion] = useState("");
@@ -26,6 +28,7 @@ function AIAssistant() {
   );
 
   const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -51,6 +54,13 @@ function AIAssistant() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  const handleCopyMessage = (text) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      showToast("Response copied to clipboard!", "success");
+    }
+  };
 
   const handleSend = async (e) => {
     if (e) e.preventDefault();
@@ -108,55 +118,91 @@ function AIAssistant() {
 
   const handleQuickPrompt = (promptText) => {
     setQuestion(promptText);
+    textareaRef.current?.focus();
+  };
+
+  // Helper to format basic markdown (bold text, lists)
+  const renderFormattedText = (rawText) => {
+    if (!rawText) return null;
+    const lines = rawText.split("\n");
+    return lines.map((line, idx) => {
+      // Check for bullet line
+      const trimmed = line.trim();
+      const isBullet = trimmed.startsWith("- ") || trimmed.startsWith("* ") || trimmed.startsWith("• ");
+      const content = isBullet ? trimmed.replace(/^[-*•]\s+/, "") : line;
+
+      // Simple parser for bold **text**
+      const parts = content.split(/(\*\*.*?\*\*)/g);
+      const formattedParts = parts.map((part, pIdx) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+          return <strong key={pIdx}>{part.slice(2, -2)}</strong>;
+        }
+        return part;
+      });
+
+      if (isBullet) {
+        return (
+          <li key={idx} className="bubble-list-item">
+            {formattedParts}
+          </li>
+        );
+      }
+
+      return (
+        <p key={idx} className="bubble-paragraph">
+          {formattedParts}
+        </p>
+      );
+    });
   };
 
   return (
     <Layout>
       <div className="page-container chat-container">
+        {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" className="breadcrumb">
-          <Link to="/topics">Topics</Link>
+          <Link to="/topics" className="breadcrumb-link">Topics</Link>
           <span className="breadcrumb-separator">›</span>
           {article && (
             <>
-              <Link to={`/articles/${articleId}`}>
+              <Link to={`/articles/${articleId}`} className="breadcrumb-link">
                 {article.articleNumber}: {article.title}
               </Link>
               <span className="breadcrumb-separator">›</span>
             </>
           )}
-          <span>AI Assistant</span>
+          <span className="breadcrumb-current">AI Assistant</span>
         </nav>
 
+        {/* Chat Header Card */}
         <header className="chat-header-card">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: "12px",
-            }}
-          >
+          <div className="chat-header-top">
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                <span className="badge badge-navy">AI Constitutional Tutor</span>
+              <div className="chat-badge-row">
+                <span className="badge badge-navy">
+                  <Icon name="ai" size={14} />
+                  <span>AI Constitutional Tutor</span>
+                </span>
                 {article && <span className="badge badge-blue">{article.articleNumber}</span>}
               </div>
-              <h1 className="page-title" style={{ fontSize: "1.5rem", marginBottom: "4px" }}>
+              <h1 className="page-title chat-title">
                 {article ? `Ask AI: ${article.title}` : "AI Constitutional Assistant"}
               </h1>
-              <p className="page-subtitle" style={{ fontSize: "0.9rem" }}>
-                Ask questions to understand provisions, real-life applications, or historical intent.
+              <p className="page-subtitle chat-subtitle">
+                Grounded strictly in verified constitutional provisions. Ask about citizen rights, duties, or court precedents.
               </p>
             </div>
+
             <Link to={`/articles/${articleId}`} className="btn btn-outline btn-sm">
-              ← Return to Article
+              <Icon name="arrow-left" size={14} />
+              <span>Return to Article</span>
             </Link>
           </div>
 
           <div className="chat-controls-row">
             <div className="chat-control-group">
               <label htmlFor="ai-language">
+                <Icon name="institution" size={14} />
                 <strong>Language:</strong>
               </label>
               <select
@@ -172,6 +218,7 @@ function AIAssistant() {
 
             <div className="chat-control-group">
               <label htmlFor="ai-style">
+                <Icon name="sparkles" size={14} />
                 <strong>Explanation Style:</strong>
               </label>
               <select
@@ -191,9 +238,9 @@ function AIAssistant() {
 
         {!hasToken && (
           <div className="alert alert-info">
-            <span>💡</span>
-            <div>
-              <strong>Note:</strong> The AI Assistant requires authentication.{" "}
+            <span className="alert-icon">💡</span>
+            <div className="alert-content">
+              <strong>Account Required:</strong> The AI Assistant requires citizen authentication.{" "}
               <Link to="/login" style={{ textDecoration: "underline", fontWeight: "bold" }}>
                 Log in
               </Link>{" "}
@@ -201,18 +248,19 @@ function AIAssistant() {
               <Link to="/register" style={{ textDecoration: "underline", fontWeight: "bold" }}>
                 Register
               </Link>{" "}
-              to submit questions.
+              to ask questions and explore explanations.
             </div>
           </div>
         )}
 
         {error && (
           <div className="alert alert-error" role="alert">
-            <span>⚠️</span>
-            <div>{error}</div>
+            <span className="alert-icon">⚠️</span>
+            <div className="alert-content">{error}</div>
           </div>
         )}
 
+        {/* Chat Messages Display */}
         <div className="chat-messages-box">
           {messages.map((msg) => (
             <div
@@ -226,7 +274,11 @@ function AIAssistant() {
                   msg.sender === "user" ? "avatar-user" : "avatar-ai"
                 }`}
               >
-                {msg.sender === "user" ? "👤" : "🏛️"}
+                {msg.sender === "user" ? (
+                  <Icon name="user" size={18} />
+                ) : (
+                  <Icon name="chakra" size={20} />
+                )}
               </div>
               <div
                 className={`message-bubble ${
@@ -234,30 +286,42 @@ function AIAssistant() {
                 }`}
                 style={msg.isError ? { borderColor: "#f8c8c8", background: "#fdf0f0" } : {}}
               >
-                <p style={{ whiteSpace: "pre-wrap" }}>{msg.text}</p>
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: "0.72rem",
-                    opacity: 0.7,
-                    marginTop: "6px",
-                    textAlign: msg.sender === "user" ? "right" : "left",
-                  }}
-                >
-                  {msg.timestamp}
-                </span>
+                <div className="message-text">
+                  {renderFormattedText(msg.text)}
+                </div>
+
+                <div className="message-footer-meta">
+                  <span className="message-timestamp">{msg.timestamp}</span>
+                  {msg.sender === "assistant" && !msg.isError && (
+                    <button
+                      type="button"
+                      className="message-copy-btn"
+                      onClick={() => handleCopyMessage(msg.text)}
+                      title="Copy response"
+                    >
+                      <Icon name="copy" size={13} />
+                      <span>Copy</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
 
           {loading && (
             <div className="message-item message-assistant">
-              <div className="message-avatar avatar-ai">🏛️</div>
+              <div className="message-avatar avatar-ai">
+                <Icon name="chakra" size={20} />
+              </div>
               <div className="message-bubble bubble-assistant">
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <div className="loading-spinner" style={{ width: "16px", height: "16px", borderWidth: "2px" }} />
-                  <span style={{ fontSize: "0.88rem", color: "var(--text-muted)" }}>
-                    Reviewing constitutional provisions...
+                <div className="ai-typing-indicator">
+                  <div className="typing-dots">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <span className="ai-typing-text">
+                    Consulting verified constitutional text with Gemini...
                   </span>
                 </div>
               </div>
@@ -267,10 +331,12 @@ function AIAssistant() {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Chat Input & Suggested Prompts Card */}
         <div className="chat-input-card">
-          <div style={{ marginBottom: "10px" }}>
-            <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text-muted)" }}>
-              Suggested prompts:
+          <div className="suggested-prompts-section">
+            <span className="suggested-prompts-label">
+              <Icon name="sparkles" size={13} />
+              <span>Suggested Citizen Questions:</span>
             </span>
             <div className="quick-prompts">
               <button
@@ -305,6 +371,7 @@ function AIAssistant() {
 
           <form onSubmit={handleSend} className="chat-input-form">
             <textarea
+              ref={textareaRef}
               className="chat-textarea"
               placeholder="Ask anything about this article (up to 1,000 characters)..."
               value={question}
@@ -320,17 +387,28 @@ function AIAssistant() {
             />
             <button
               type="submit"
-              className="btn btn-primary"
+              className="btn btn-primary chat-send-btn"
               disabled={loading || !question.trim()}
-              style={{ minHeight: "52px", padding: "0 20px" }}
             >
-              {loading ? "Thinking..." : "Ask AI →"}
+              {loading ? (
+                <>
+                  <span className="loading-spinner-inline" />
+                  <span>Thinking...</span>
+                </>
+              ) : (
+                <>
+                  <span>Send</span>
+                  <Icon name="send" size={16} />
+                </>
+              )}
             </button>
           </form>
 
           <div className="chat-input-meta">
-            <span>Press Enter to send, Shift+Enter for new line</span>
-            <span>{question.length} / 1000</span>
+            <span>Press <strong>Enter</strong> to send, <strong>Shift + Enter</strong> for a new line</span>
+            <span className={`char-count ${question.length >= 950 ? "char-count-warning" : ""}`}>
+              {question.length} / 1000
+            </span>
           </div>
         </div>
       </div>

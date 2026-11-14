@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
 import Layout from "../components/Layout";
 import { get } from "../services/api";
+import { Icon } from "../components/Icons";
 
 function Topics() {
   const [topics, setTopics] = useState([]);
@@ -47,48 +47,57 @@ function Topics() {
   return (
     <Layout>
       <div className="page-container">
+        {/* Page Header */}
         <header className="page-header">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px" }}>
+          <div className="page-header-row">
             <div>
+              <div className="section-kicker">Constitutional Modules</div>
               <h1 className="page-title">Constitution Topics</h1>
               <p className="page-subtitle">
                 Explore key pillars, articles, and foundational principles of the Constitution of India in simple, accessible language.
               </p>
             </div>
+
             {topics.length > 0 && (
-              <div style={{ minWidth: "260px" }}>
-                <input
-                  type="search"
-                  placeholder="Search topics..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "9px 14px",
-                    borderRadius: "8px",
-                    border: "1px solid var(--border)",
-                    backgroundColor: "var(--white)",
-                    fontSize: "0.9rem",
-                    outline: "none",
-                    boxShadow: "var(--shadow-sm)"
-                  }}
-                />
+              <div className="topics-search-wrapper">
+                <div className="search-input-box">
+                  <Icon name="search" size={17} className="search-icon" />
+                  <input
+                    type="search"
+                    className="search-input"
+                    placeholder="Search topics by keyword..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    aria-label="Search topics"
+                  />
+                  {searchTerm && (
+                    <button
+                      type="button"
+                      className="search-clear-btn"
+                      onClick={() => setSearchTerm("")}
+                      aria-label="Clear search"
+                    >
+                      <Icon name="close" size={14} />
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
         </header>
 
         {loading && (
-          <div className="loading-container">
-            <div className="loading-spinner" />
-            <p>Loading topics...</p>
+          <div className="skeleton-grid">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="skeleton-card" />
+            ))}
           </div>
         )}
 
         {!loading && error && (
           <div className="alert alert-error" role="alert">
-            <span>⚠️</span>
-            <div>
+            <span className="alert-icon">⚠️</span>
+            <div className="alert-content">
               <strong>Error loading topics:</strong> {error}
             </div>
           </div>
@@ -96,24 +105,28 @@ function Topics() {
 
         {!loading && !error && topics.length === 0 && (
           <div className="empty-state">
-            <div className="empty-state-icon">📚</div>
+            <div className="empty-state-icon">
+              <Icon name="book" size={40} />
+            </div>
             <h3 className="empty-state-title">No Topics Available</h3>
-            <p>No topics are available yet.</p>
+            <p className="empty-state-text">No constitutional topics are available yet.</p>
           </div>
         )}
 
         {!loading && !error && topics.length > 0 && filteredTopics.length === 0 && (
           <div className="empty-state">
-            <div className="empty-state-icon">🔍</div>
+            <div className="empty-state-icon">
+              <Icon name="search" size={40} />
+            </div>
             <h3 className="empty-state-title">No Matching Topics</h3>
-            <p>No topics matched your search for "{searchTerm}".</p>
+            <p className="empty-state-text">No topics matched your search for "{searchTerm}".</p>
             <button
               type="button"
               className="btn btn-outline-blue btn-sm"
               onClick={() => setSearchTerm("")}
-              style={{ marginTop: "12px" }}
+              style={{ marginTop: "14px" }}
             >
-              Clear Search
+              Clear Search Filter
             </button>
           </div>
         )}
@@ -122,7 +135,7 @@ function Topics() {
           <ul className="topics-grid">
             {filteredTopics.map((topic, index) => (
               <li className="topic-card card" key={topic.id}>
-                <div>
+                <div className="topic-card-body">
                   <div className="topic-card-header">
                     <span className="topic-card-badge">
                       Module 0{index + 1}
@@ -137,15 +150,16 @@ function Topics() {
                 </div>
 
                 <div className="topic-card-footer">
-                  <span style={{ fontSize: "0.82rem", color: "var(--text-light)" }}>
-                    Structured Learning
-                  </span>
+                  <div className="topic-card-meta">
+                    <Icon name="constitution" size={14} />
+                    <span>Structured Learning</span>
+                  </div>
                   <Link
                     to={`/topics/${topic.id}/articles`}
-                    className="btn btn-sm btn-outline-blue"
+                    className="btn btn-sm btn-outline-blue topic-card-link-btn"
                   >
                     <span>View Articles</span>
-                    <span>→</span>
+                    <Icon name="arrow-right" size={13} />
                   </Link>
                 </div>
               </li>

@@ -1,87 +1,226 @@
+/* ==========================================================================
+   NAGRIK AUR SAMVIDHAN — CORE TOKENS & BASE RESETS
+   ========================================================================== */
+
 :root {
-  --navy: #203b5b;
-  --navy-dark: #16283e;
-  --navy-light: #2c4e75;
-  --blue: #3368a0;
-  --blue-hover: #275282;
-  --blue-subtle: #e8f0f8;
-  --light-teal: #c8dfdb;
-  --teal-soft: #eaf4f2;
-  --cream: #f5f3ed;
-  --cream-card: #fcfbf8;
-  --text: #243247;
-  --text-muted: #576982;
-  --text-light: #8393a8;
+  /* Brand Palette */
+  --navy: #132742;
+  --navy-dark: #0a1728;
+  --navy-light: #1f3d67;
+  --blue: #2563eb;
+  --blue-hover: #1d4ed8;
+  --blue-subtle: #eff6ff;
+  --blue-border: #bfdbfe;
+
+  /* National Tricolor & Semantic Accents */
+  --saffron: #f59e0b;
+  --saffron-dark: #d97706;
+  --saffron-subtle: #fffbeb;
+  --emerald: #10b981;
+  --emerald-dark: #059669;
+  --emerald-subtle: #ecfdf5;
+
+  /* Neutrals & Surfaces (Light Mode) */
+  --bg-main: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --bg-muted: #f1f5f9;
+  --bg-alt: #fafafa;
+  --cream: #fbfbf9;
+  --cream-card: #ffffff;
+  --teal-soft: #f0fdf9;
+  --light-teal: #ccfbf1;
+
+  --text: #0f172a;
+  --text-muted: #475569;
+  --text-light: #94a3b8;
   --white: #ffffff;
+
   --border: #e2e8f0;
-  --border-subtle: #edf2f7;
-  --border-focus: #3368a0;
-  --success: #1a7f5a;
-  --success-bg: #e8f7f0;
-  --danger: #cf3a3a;
-  --danger-bg: #fdf0f0;
+  --border-subtle: #f1f5f9;
+  --border-focus: #2563eb;
+
+  --success: #059669;
+  --success-bg: #ecfdf5;
+  --success-border: #a7f3d0;
+  --danger: #dc2626;
+  --danger-bg: #fef2f2;
+  --danger-border: #fecaca;
   --warning: #d97706;
-  --warning-bg: #fef7ec;
-  
-  --shadow-sm: 0 1px 3px rgba(32, 59, 91, 0.05);
-  --shadow-md: 0 4px 12px rgba(32, 59, 91, 0.08);
-  --shadow-lg: 0 10px 25px rgba(32, 59, 91, 0.12);
-  
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --warning-bg: #fffbeb;
+  --warning-border: #fde68a;
+
+  /* Elevation & Shadows */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 6px 18px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 14px 34px rgba(15, 23, 42, 0.12);
+  --shadow-glow: 0 4px 20px rgba(37, 99, 235, 0.25);
+  --shadow-saffron: 0 4px 20px rgba(245, 158, 11, 0.28);
+
+  /* Geometry */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
   --radius-full: 9999px;
-  
+
+  /* Typography */
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-serif: 'Merriweather', Georgia, serif;
+  --font-display: 'Cinzel', serif;
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-* {
+/* --------------------------------------------------------------------------
+   Dark Mode Variables
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] {
+  --navy: #0f1c30;
+  --navy-dark: #070e18;
+  --navy-light: #192c49;
+  --blue: #3b82f6;
+  --blue-hover: #60a5fa;
+  --blue-subtle: rgba(59, 130, 246, 0.15);
+  --blue-border: rgba(59, 130, 246, 0.3);
+
+  --bg-main: #09111e;
+  --bg-surface: #101c2e;
+  --bg-card: #132238;
+  --bg-muted: #182b45;
+  --bg-alt: #101c2e;
+  --cream: #09111e;
+  --cream-card: #132238;
+  --teal-soft: rgba(16, 185, 129, 0.12);
+  --light-teal: rgba(16, 185, 129, 0.3);
+
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+
+  --border: #1e3352;
+  --border-subtle: #162841;
+  --border-focus: #3b82f6;
+
+  --success: #34d399;
+  --success-bg: rgba(16, 185, 129, 0.15);
+  --success-border: rgba(16, 185, 129, 0.3);
+  --danger: #f87171;
+  --danger-bg: rgba(239, 68, 68, 0.15);
+  --danger-border: rgba(239, 68, 68, 0.3);
+  --warning: #fbbf24;
+  --warning-bg: rgba(245, 158, 11, 0.15);
+  --warning-border: rgba(245, 158, 11, 0.3);
+
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 14px 34px rgba(0, 0, 0, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   Global Resets & Base Styles
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
   box-sizing: border-box;
+}
+
+html {
+  font-size: 15px;
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   min-width: 320px;
-  background-color: var(--cream);
+  background-color: var(--bg-main);
   color: var(--text);
   font-family: var(--font-sans);
-  font-size: 15px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: var(--navy);
+  color: var(--text);
   margin-top: 0;
   font-weight: 700;
   line-height: 1.25;
+  letter-spacing: -0.015em;
 }
 
 h1 {
-  font-size: 1.85rem;
+  font-size: 2rem;
 }
 
 h2 {
-  font-size: 1.4rem;
+  font-size: 1.45rem;
 }
 
 h3 {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+p:last-child {
+  margin-bottom: 0;
 }
 
 a {
   color: var(--blue);
   text-decoration: none;
-  transition: color 0.18s ease;
+  transition: color var(--transition-fast);
 }
 
 a:hover {
-  color: var(--navy);
-  text-decoration: none;
+  color: var(--blue-hover);
 }
 
 button, input, select, textarea {
   font-family: inherit;
+  font-size: inherit;
+  color: inherit;
 }
+
+/* Focus styles for keyboard accessibility */
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* Custom subtle scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-light);
+}
+
+/* Utility Helpers */
+.text-center { text-align: center; }
+.text-success { color: var(--success) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-blue { color: var(--blue) !important; }
+.text-navy { color: var(--navy) !important; }
+.text-muted { color: var(--text-muted) !important; }
+.w-full { width: 100% !important; }
