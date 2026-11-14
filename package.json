@@ -1,0 +1,14 @@
+{
+  "name": "constitution-simplified-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Nagrik Aur Samvidhan - Monorepo root scripts",
+  "scripts": {
+    "dev": "node run-dev.js",
+    "start": "node run-dev.js",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "lint": "npm --prefix frontend run lint"
+  }
+}
