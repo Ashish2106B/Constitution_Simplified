@@ -23,7 +23,13 @@ function TopicArticles() {
         }
 
         if (isMounted) {
-          setTopicName(response.topic || "Topic Articles");
+          // The API has returned the topic as either its name or a full
+          // Prisma object depending on the deployed backend version.
+          const name =
+            typeof response.topic === "string"
+              ? response.topic
+              : response.topic?.name;
+          setTopicName(name || "Topic Articles");
           setArticles(response.articles);
         }
       } catch (requestError) {

@@ -96,6 +96,15 @@ npm run dev
 ```
 
 Open the local URL printed by Vite, usually `http://localhost:5173/`.
+The Vite development server proxies `/api` requests to `http://localhost:5050`.
+
+### Deploying the frontend
+
+Set `VITE_API_URL` in the frontend hosting provider to the backend API
+origin, including `/api` (for example, `https://your-backend.example.com/api`).
+The backend must allow the deployed frontend origin through its `FRONTEND_URL`
+setting. If the API is served from the same origin as the frontend, the default
+`/api` URL works without this setting.
 
 ## API reference
 
