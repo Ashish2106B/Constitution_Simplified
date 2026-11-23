@@ -1,6 +1,9 @@
-export const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  "/api";
+const rawBaseUrl = (import.meta.env.VITE_API_URL || "").trim();
+export const API_BASE_URL = (() => {
+  if (!rawBaseUrl) return "/api";
+  const trimmed = rawBaseUrl.replace(/\/+$/, "");
+  return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+})();
 
 export async function apiRequest(path, { method = "GET", body, headers = {} } = {}) {
   const requestHeaders = new Headers(headers);
